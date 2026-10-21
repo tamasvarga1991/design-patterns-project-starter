@@ -3,6 +3,7 @@ from balance.balance import Balance
 from transaction.transaction import Transaction
 from transaction.transaction_category import TransactionCategory
 
+
 class TestBalance(unittest.TestCase):
 
     def setUp(self):
@@ -16,6 +17,16 @@ class TestBalance(unittest.TestCase):
         balance1 = Balance.get_instance()
         balance2 = Balance.get_instance()
         self.assertIs(balance1, balance2)
+
+    def test_direct_construction_preserves_singleton_state(self):
+        first = Balance()
+        first.reset()
+        first.add_income(25)
+        second = Balance()
+
+        self.assertIs(first, second)
+        self.assertEqual(second.get_balance(), 25)
+        self.assertIs(Balance.get_instance(), first)
 
     def test_add_income(self):
         self.balance.add_income(100)
@@ -38,6 +49,7 @@ class TestBalance(unittest.TestCase):
     def test_apply_transaction_invalid_category(self):
         class FakeCategory:
             pass
+
         t = Transaction(100, FakeCategory())
         with self.assertRaises(ValueError):
             self.balance.apply_transaction(t)
@@ -47,6 +59,7 @@ class TestBalance(unittest.TestCase):
         self.balance.add_expense(50)
         self.balance.reset()
         self.assertEqual(self.balance.get_balance(), 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

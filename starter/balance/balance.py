@@ -2,15 +2,24 @@
 
 from transaction.transaction_category import TransactionCategory
 
+
 class Balance:
     """Singleton to track the balance."""
 
     _instance = None
 
+    def __new__(cls):
+        """Create the singleton instance once."""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        """Initialize the balance. Prevent direct instantiation."""
-        self._balance = 0.0
-        self._observers = []
+        """Initialize the singleton state once."""
+        if not hasattr(self, "_initialized"):
+            self._balance = 0.0
+            self._observers = []
+            self._initialized = True
 
     @classmethod
     def get_instance(cls):
@@ -43,7 +52,9 @@ class Balance:
         elif transaction.category == TransactionCategory.EXPENSE:
             self.add_expense(transaction.amount)
         else:
-            raise ValueError(f"Unsupported transaction category: {transaction.category}")
+            raise ValueError(
+                f"Unsupported transaction category: {transaction.category}"
+            )
 
         for observer in self._observers:
             observer.update(self._balance, transaction)
@@ -59,4 +70,3 @@ class Balance:
     def summary(self):
         """Return a summary string of the net balance."""
         return f"Balance: ${self._balance:.2f}"
-    

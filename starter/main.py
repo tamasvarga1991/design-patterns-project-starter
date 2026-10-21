@@ -2,6 +2,8 @@
 from balance.balance import Balance
 from balance.balance_observer import LowBalanceAlertObserver
 from balance.balance_observer import PrintObserver
+from budget.budget_planner import BudgetPlanner
+from budget.budget_strategy import FiftyThirtyTwentyStrategy
 from transaction.transaction import Transaction
 from transaction.transaction_category import TransactionCategory
 from transaction.transaction_adapter import TransactionAdapter
@@ -10,7 +12,7 @@ from transaction.external_income_transaction import ExternalFreelanceIncome
 
 def main():
     print("Adding transactions...")
-   
+
     balance = Balance.get_instance()
     balance.register_observer(PrintObserver())
     balance.register_observer(LowBalanceAlertObserver(threshold=100))
@@ -24,7 +26,13 @@ def main():
     ]
 
     # Create an external income transaction (via Adapter pattern)
-    freelance_income = ExternalFreelanceIncome(1200, "INV-98765", "Mobile App Project")
+    freelance_income = ExternalFreelanceIncome(
+        1200, "INV-98765", "Mobile App Project"
+    )
+    planner = BudgetPlanner(FiftyThirtyTwentyStrategy())
+    budget = planner.create_budget(freelance_income.amount)
+    print(f"Freelance income budget: {budget}")
+
     adapter = TransactionAdapter(freelance_income)
     adapted_transaction = adapter.to_transaction()
 
@@ -34,6 +42,7 @@ def main():
         balance.apply_transaction(transaction)
 
     print(balance.summary())
+
 
 if __name__ == "__main__":
     main()
